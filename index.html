@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>영신이 - 영수증 선택을 이롭게</title>
+    <style>
+        button {
+            cursor: pointer;
+        }
+
+        .wrap {
+            max-width: 300px;
+            margin: 0 auto;
+            padding: 50px 0;
+        }
+
+        .title {
+            text-align: center;
+        }
+
+        .max_price_area {
+            display: flex;
+        }
+
+        .text {
+            font-size: 16px;
+            line-height: 30px;
+        }
+
+        .input_max {
+            flex: 1;
+            margin: 0 5px;
+            padding: 0 5px;
+            box-sizing: border-box;
+            border: 1px solid #000;
+            border-radius: 0;
+            font-size: 16px;
+        }
+
+        .input_area {
+            display: flex;
+            padding: 10px 0;
+            margin: 0 auto;
+        }
+
+        .input_number {
+            width: 220px;
+            padding: 0 5px;
+            box-sizing: border-box;
+            border: 1px solid #000;
+            border-radius: 0;
+            font-size: 16px;
+        }
+
+        .button_confirm {
+            min-width: 80px;
+            height: 30px;
+            border: 0;
+            font-size: 15px;
+        }
+
+        .button_confirm {
+            background: #2ecc71;
+            color: #fff;
+        }
+
+        .total_area {
+            display: flex;
+            padding-top: 20px;
+            font-size: 20px;
+            font-weight: bold;
+            line-height: 24px;
+        }
+
+        .total {
+            margin-left: 10px;
+        }
+
+        .list {
+            list-style: none;
+            margin: 10px 0;
+            padding: 10px;
+            box-sizing: border-box;
+            border: 1px solid #000;
+        }
+
+        .list:empty::before {
+            font-size: 14px;
+            content: '영수증 목록';
+        }
+
+        .item {
+            display: flex;
+            align-items: center;
+            padding: 5px 0;
+        }
+
+        .item.checked .price::before {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            border-bottom: 3px solid #f1c40f;
+            content: '';
+        }
+
+        .item + .item {
+            border-top: 1px dashed #000;
+        }
+
+        .price {
+            position: relative;
+            flex: 1;
+            font-size: 17px;
+            padding: 3px;
+        }
+
+        .button_delete {
+            width: 30px;
+            height: 25px;
+            border: 0;
+            background: transparent;
+            font-size: 18px;
+            font-weight: bold;
+            color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <h1 class="title">영선이😉</h1>
+        <div class="max_price_area">
+            <label id="max_price" class="text" for="max">지원 금액: </label>
+            <input type="text" id="max" class="input_max" value="50,000">
+            <span class="text">원</span>
+        </div>
+        <div class="input_area">
+            <input type="text" id="number" placeholder="영수증 금액 입력" class="input_number">
+            <button type="button" id="confirm" class="button_confirm">추가</button>
+        </div>
+        <div class="total_area">
+            <span class="term">총 금액:</span>
+            <span id="total" class="total">0원</span>
+        </div>
+        <ul id="list" class="list"></ul>
+    </div>
+    <script>
+        const $inputMax = document.getElementById('max');
+        const $inputNumber = document.getElementById('number');
+        const $list = document.getElementById('list');
+        const $buttonConfirm = document.getElementById('confirm');
+        const $buttonChoice = document.getElementById('select');
+        const $total = document.getElementById('total');
+        let maximum = 0;
+        let maximumCombination;
+        let itemIndex = 0;
+        let amount;
+
+        const handleConfirm = function(price) {
+          const $item = document.createElement('li');
+          const $price = document.createElement('span');
+          const $button = document.createElement('button');
+
+          $item.setAttribute('id', `item-${itemIndex++}`);
+          $item.setAttribute('class', 'item');
+          $item.appendChild($price);
+          $item.appendChild($button);
+          $price.setAttribute('class', 'price');
+          $price.innerHTML = `${price}원`;
+          $button.setAttribute('class', 'button_delete');
+          $button.type = 'button';
+          $button.innerHTML = 'X'
+          $button.addEventListener('click', function () {
+            $list.removeChild($item);
+            calculate();
+          });
+
+          $list.appendChild($item);
+        }
+
+        const choice = function(array, choiceList, depth) {
+          if (depth === array.length) {
+            let result = choiceList.reduce(function (prev, cur, index) {
+              if (cur === 0) {
+                return prev;
+              }
+              return prev + parseInt(array[index].price);
+            }, 0);
+
+            if (result > maximum && result <= amount) {
+              maximum = result;
+              maximumCombination = JSON.parse(JSON.stringify(choiceList));
+            }
+            return;
+          }
+
+          choiceList[depth] = 1;
+          choice(array, choiceList, depth + 1);
+          choiceList[depth] = 0;
+          choice(array, choiceList, depth + 1);
+        }
+
+        const handleInput = function(e) {
+          let value = e.target.value;
+          value = Number(value.replaceAll(',', ''));
+
+          if(isNaN(value)) {
+            e.target.value = 0;
+          }else {
+            const formatValue = value.toLocaleString('ko-KR');
+            e.target.value = formatValue;
+          }
+        }
+
+        const calculate = function() {
+          const $items = $list.querySelectorAll('.item');
+          const infoList = [];
+          const choiceList = Array($items.length).fill(0);
+
+          $items.forEach(function (element) {
+            let price = element.querySelector('span').innerHTML.replaceAll(',', '');
+            price = price.substring(0, price.length - 1);
+
+            infoList.push({
+              price,
+              key: element.getAttribute('id')
+            })
+          });
+
+          maximum = 0;
+          maximumCombination = Array($items.length).fill(0);
+          amount = parseInt($inputMax.value.replaceAll(',', ''))
+
+          infoList.sort(function(a, b) {
+            return parseInt(b.price) - parseInt(a.price);
+          });
+
+          choice(infoList, choiceList, 0);
+
+          infoList.forEach(function (info, index) {
+            const $element = document.getElementById(info.key);
+            $element.classList.remove('checked');
+
+            if (maximumCombination[index] === 1) {
+              $element.classList.add('checked');
+            }
+          });
+
+          $total.innerHTML = `${maximum.toLocaleString('ko-KR')}원`
+        }
+
+        $inputNumber.addEventListener('keyup', function(e) {
+          if (e.key === "Enter") {
+            if (e.target.value > '0') {
+                handleConfirm(e.target.value);
+                calculate();
+                e.target.value = '';
+            }
+            return;
+          }
+          handleInput(e);
+        });
+
+        $inputMax.addEventListener('keyup', function(e) {
+          handleInput(e);
+        });
+
+        $buttonConfirm.addEventListener('click', function (e) {
+          if ($inputNumber.value >= '0') {
+            handleConfirm($inputNumber.value);
+            $inputNumber.value = '';
+          }
+        });
+
+        $buttonChoice.addEventListener('click', function (e) {
+          calculate();
+        });
+    </script>
+</body>
+</html>
