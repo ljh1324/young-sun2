@@ -2,8 +2,14 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>영신이 - 영수증 선택을 이롭게</title>
     <style>
+        body {
+            min-width: 300px;
+            margin: 0;
+        }
+
         button {
             cursor: pointer;
         }
@@ -11,7 +17,7 @@
         .wrap {
             max-width: 300px;
             margin: 0 auto;
-            padding: 50px 0;
+            padding: 50px 10px;
         }
 
         .title {
@@ -20,6 +26,7 @@
 
         .max_price_area {
             display: flex;
+            white-space: nowrap;
         }
 
         .text {
