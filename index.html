@@ -186,26 +186,20 @@
           $list.appendChild($item);
         }
 
-        const choice = function(array, choiceList, depth) {
-          if (depth === array.length) {
-            let result = choiceList.reduce(function (prev, cur, index) {
-              if (cur === 0) {
-                return prev;
-              }
-              return prev + parseInt(array[index].price);
-            }, 0);
+        const choice = function(array, choiceList, depth, current) {
+          if (current > maximum && current <= amount) {
+            maximum = current;
+            maximumCombination = JSON.parse(JSON.stringify(choiceList));
+          }
 
-            if (result > maximum && result <= amount) {
-              maximum = result;
-              maximumCombination = JSON.parse(JSON.stringify(choiceList));
-            }
+          if (current > amount || depth === array.length) {
             return;
           }
 
           choiceList[depth] = 1;
-          choice(array, choiceList, depth + 1);
+          choice(array, choiceList, depth + 1, current + parseInt(array[depth].price));
           choiceList[depth] = 0;
-          choice(array, choiceList, depth + 1);
+          choice(array, choiceList, depth + 1, current);
         }
 
         const handleInput = function(e) {
@@ -243,7 +237,7 @@
             return parseInt(b.price) - parseInt(a.price);
           });
 
-          choice(infoList, choiceList, 0);
+          choice(infoList, choiceList, 0, 0);
 
           infoList.forEach(function (info, index) {
             const $element = document.getElementById(info.key);
