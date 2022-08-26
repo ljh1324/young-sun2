@@ -149,7 +149,6 @@
         const $inputNumber = document.getElementById('number');
         const $list = document.getElementById('list');
         const $buttonConfirm = document.getElementById('confirm');
-        const $buttonChoice = document.getElementById('select');
         const $total = document.getElementById('total');
         let maximum = 0;
         let maximumCombination;
@@ -270,10 +269,6 @@
             handleConfirm($inputNumber.value);
             $inputNumber.value = '';
           }
-        });
-
-        $buttonChoice.addEventListener('click', function (e) {
-          calculate();
         });
     </script>
 </body>
